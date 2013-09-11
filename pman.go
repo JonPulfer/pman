@@ -12,9 +12,11 @@ import (
 func main() {
 	thisSecret := tools.HideInput("Password : ")
 	fmt.Println(thisSecret)
+	ks := make(tools.KeyStore)
 	
-	k := tools.Key{LoginName: "pulfer", Password: "guff", Detail: "test entry"}
-	ks := make(map[string]tools.Key)
-	ks["test"]  = k
+	k1 := tools.Key{LoginName: "pulfer", Password: "guff", Detail: "test entry"}
+	ks["test"] = k1
+	k2 := tools.Key{LoginName: "pulfer@gmail.com", Password: thisSecret, Detail: "another fine test entry"}
+	ks["test2"] = k2
 	tools.CreateStore(ks)
 }
