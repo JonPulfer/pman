@@ -1,8 +1,10 @@
 package tools
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 // Type Key defines a single key containing login details for
@@ -33,8 +35,9 @@ func (ks *KeyStore) String() string {
 		x := "::"
 		e := ":#:"
 		n := ":##:"
-		line = line + hdr + kn + x + k + e + ln + x + d.LoginName + e + pw + x + d.Password +
-			e + op + x + d.OldPassword + e + dt + x + d.Detail + n
+		line = line + hdr + kn + x + k + e + ln + x + d.LoginName + e +
+			pw + x + d.Password + e + op + x + d.OldPassword +
+			e + dt + x + d.Detail + n
 	}
 
 	return line
@@ -56,4 +59,33 @@ func CreateStore(k KeyStore) {
 		fmt.Printf("\nCreated file\n")
 	}
 
+}
+
+// Function Import loads records from a file to import into
+// the keystore.
+//
+// It expects the records 1 per line in the following format
+//
+// keyname::loginname::password::oldpassword::detail
+func Import(in string) {
+	var k Key
+	ks := make(Keystore)
+	ifile, err := os.Open(in)
+	if err != nil {
+		fmt.Printf("Error opening import file : %s\n\t\t%v\n", in, err)
+		return
+	}
+	defer ifile.Close()
+
+	fscan := bufio.NewScanner(ifile)
+	for fscan.Scan() {
+		l := fscan.Text()
+		v := strings.Split(l, "::")
+		ks.LoginName = v[1]
+		ks.Password = v[2]
+		ks.OldPassword = v[3]
+		ks.Detail = v[4]
+		k[v[0]] = ks
+	}
+	CreateStore(ks)
 }
