@@ -19,8 +19,14 @@ func init() {
 
 func main() {
 	thisSecret := tools.HideInput("Password : ")
+
+	// Pad the key up to the expected block size
+	key := []byte(thisSecret)
+	for i := len(key); i < 32; i++ {
+		key = append(key, []byte("a")[0])
+	}
 	fmt.Println()
 	if *listKs {
-		tools.ListKeystore(thisSecret)
+		tools.ListKeystore(key)
 	}
 }
