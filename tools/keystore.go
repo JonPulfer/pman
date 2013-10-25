@@ -61,6 +61,10 @@ func CreateStore(k KeyStore) {
 
 }
 
+func ListKeystore(secret string) {
+	fmt.Printf("Listing using secret %s\n", secret)
+}
+
 // Function Import loads records from a file to import into
 // the keystore.
 //
@@ -69,7 +73,7 @@ func CreateStore(k KeyStore) {
 // keyname::loginname::password::oldpassword::detail
 func Import(in string) {
 	var k Key
-	ks := make(Keystore)
+	ks := make(KeyStore)
 	ifile, err := os.Open(in)
 	if err != nil {
 		fmt.Printf("Error opening import file : %s\n\t\t%v\n", in, err)
@@ -81,11 +85,11 @@ func Import(in string) {
 	for fscan.Scan() {
 		l := fscan.Text()
 		v := strings.Split(l, "::")
-		ks.LoginName = v[1]
-		ks.Password = v[2]
-		ks.OldPassword = v[3]
-		ks.Detail = v[4]
-		k[v[0]] = ks
+		k.LoginName = v[1]
+		k.Password = v[2]
+		k.OldPassword = v[3]
+		k.Detail = v[4]
+		ks[v[0]] = k
 	}
 	CreateStore(ks)
 }
