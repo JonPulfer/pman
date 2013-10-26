@@ -69,9 +69,23 @@ func createStore(k KeyStore) {
 
 }
 
-// Function ListKeystore lists the contents of the keystore
-func ListKeystore(secret []byte) {
-	fmt.Printf("Listing using secret %s\n", secret)
+// Function List lists the contents of the keystore
+func List(secret []byte) {
+	ks := make(KeyStore)
+	ks.Open(secret)
+	for key, _ := range ks {
+		fmt.Printf("Key: %s\n\tDetail: %s\n", key, ks[key].Detail)
+	}
+	ks.Close(secret)
+}
+
+// Function Query gets the details for 'qKey'.
+func Query(qKey string, secret []byte) {
+	ks := make(KeyStore)
+	ks.Open(secret)
+	fmt.Printf("Login:\t\t\t\t\tPassword:\t\tDetail:\n%s\t\t\t%s\t\t%s\n", ks[qKey].LoginName,
+		ks[qKey].Password, ks[qKey].Detail)
+	ks.Close(secret)
 }
 
 // Method openKeystore opens the keystore
@@ -164,9 +178,11 @@ func (k *KeyStore) Close(secret []byte) {
 // It expects the records 1 per line in the following format
 //
 // keyname::loginname::password::oldpassword::detail
-func Import(in string) {
+func Import(in string, secret []byte) {
 	var k Key
 	ks := make(KeyStore)
+	ks.Open(secret)
+
 	ifile, err := os.Open(in)
 	if err != nil {
 		fmt.Printf("Error opening import file : %s\n\t\t%v\n", in, err)
@@ -184,5 +200,5 @@ func Import(in string) {
 		k.Detail = v[4]
 		ks[v[0]] = k
 	}
-	createStore(ks)
+	ks.Close(secret)
 }

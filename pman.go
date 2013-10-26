@@ -12,10 +12,14 @@ import (
 
 var listKs *bool
 var addKey string
+var iFile string
+var qKey string
 
 func init() {
 	listKs = flag.Bool("l", false, "List the contents of the keystore")
 	flag.StringVar(&addKey, "a", "", "Add a new key to the keystore")
+	flag.StringVar(&iFile, "i", "", "Import entries from file")
+	flag.StringVar(&qKey, "q", "", "Query the store for key")
 	flag.Parse()
 }
 
@@ -31,11 +35,19 @@ func main() {
 	fmt.Println()
 
 	if *listKs {
-		tools.ListKeystore(key)
+		tools.List(key)
 	}
 
 	if len(addKey) > 0 {
 		tools.AddKey(keyStore, addKey, key)
+	}
+
+	if len(iFile) > 0 {
+		tools.Import(iFile, key)
+	}
+
+	if len(qKey) > 0 {
+		tools.Query(qKey, key)
 	}
 
 }
