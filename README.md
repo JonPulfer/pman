@@ -19,7 +19,7 @@ Arguments
 
 `-g <keyname>` get the key specified by *keyname*
 
-`-i <filename>` import from keys from *filename*
+`-i <filename>` import keys from *filename*
 
 `-a <keyname>` add a new key called *keyname*
 
