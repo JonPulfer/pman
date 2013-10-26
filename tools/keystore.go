@@ -85,7 +85,6 @@ func Query(qKey string, secret []byte) {
 	ks.Open(secret)
 	fmt.Printf("Login:\t\t\t\t\tPassword:\t\tDetail:\n%s\t\t\t%s\t\t%s\n", ks[qKey].LoginName,
 		ks[qKey].Password, ks[qKey].Detail)
-	ks.Close(secret)
 }
 
 // Method openKeystore opens the keystore
@@ -136,6 +135,10 @@ func (k *KeyStore) Open(secret []byte) {
 		dec := gob.NewDecoder(&buff)
 		var kStore KeyStore
 		err = dec.Decode(&kStore)
+		if err != nil {
+			fmt.Println("Data retrieved from store not valid, was the password correct?")
+			os.Exit(1)
+		}
 		*k = kStore
 	}
 }
