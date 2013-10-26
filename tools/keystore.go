@@ -56,7 +56,7 @@ func (ks *KeyStore) String() string {
 
 // Function CreateStore checks to make sure a store doesn't
 // already exist before it creates a new one.
-func CreateStore(k KeyStore) {
+func createStore(k KeyStore) {
 	_, err := os.Stat(kf)
 	if err != nil {
 		kFile, err := os.Create(kf)
@@ -65,77 +65,90 @@ func CreateStore(k KeyStore) {
 		}
 		defer kFile.Close()
 		kFile.WriteString(k.String())
-		fmt.Printf("\nCreated file\n")
+		fmt.Printf("\nCreated key store file\n")
 	}
 
 }
 
 // Function ListKeystore lists the contents of the keystore
-func ListKeystore(secret string) {
+func ListKeystore(secret []byte) {
 	fmt.Printf("Listing using secret %s\n", secret)
 }
 
 // Method openKeystore opens the keystore
 func (k *KeyStore) openKeystore(secret []byte) {
 	var fstat syscall.Stat_t
+	var newKeystore bool
 
 	// Open the file containing the keystore
+
 	kFile, err := os.Open(kf)
 	if err != nil {
-		panic(err)
-	}
-	defer kFile.Close()
+		createStore(*k)
+		newKeystore = true
 
-	// Read the encrypted data from the file
-	kFileFD := kFile.Fd()
-	err = syscall.Fstat(int(kFileFD), &fstat)
-	if err != nil {
-		panic(err)
-	}
-	fileData := make([]byte, fstat.Size)
-	bytesRead, err := kFile.Read(fileData)
-	if err != nil {
-		panic(err)
 	}
 
-	// Decrypt the data
-	if len(fileData) < aes.BlockSize {
-		panic("Encrypted data is not long enough to be a valid AES block")
-	}
-	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
-	stream := cipher.NewCFBDecrypter(block, iv)
-	stream.XORKeyStream(plaintext, ciphertext)
+	if !newKeystore {
+		fmt.Printf("Going where I shouldn't go\n")
+		// Read the encrypted data from the file
+		fileData := make([]byte, fstat.Size)
+		_, err = kFile.Read(fileData)
+		if err != nil {
+			panic(err)
+		}
+		kFile.Close()
 
-	// Decode the gob to return the KeyStore
-	var buff bytes.Buffer
-	dec := gob.NewDecoder(&buff)
-	err = dec.Decode(k)
+		// Decrypt the data
+		block, err := aes.NewCipher(secret)
+		if err != nil {
+			panic(err)
+		}
+		if len(fileData) < aes.BlockSize {
+			panic("Encrypted data is not long enough to be a valid AES block")
+		}
+		iv := fileData[:aes.BlockSize]
+		ciphertext := fileData[aes.BlockSize:]
+		stream := cipher.NewCFBDecrypter(block, iv)
+		stream.XORKeyStream(ciphertext, ciphertext)
+
+		// Decode the gob to return the KeyStore
+		var buff bytes.Buffer
+		dec := gob.NewDecoder(&buff)
+		var kStore KeyStore
+		err = dec.Decode(&kStore)
+		*k = kStore
+	}
 }
 
 // Method Close encrypts and writes the encrypted data to the key file
 func (k *KeyStore) Close(secret []byte) {
 	// Encode a gob of the keystore
-	buff := bytes.Buffer
+	var buff bytes.Buffer
 	enc := gob.NewEncoder(&buff)
 	enc.Encode(k)
+	buffString := buff.String()
 
 	// Encrypt the data
-	ciphertext := make([]byte, aes.BlockSize+len(buff))
+	block, err := aes.NewCipher(secret)
+	if err != nil {
+		panic(err)
+	}
+	ciphertext := make([]byte, aes.BlockSize+len(buffString))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], buff)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], []byte(buffString))
 
 	// Write the encrypted data to the file
-	kFile, err := os.Open(kf)
+	kFile, err := os.OpenFile(kf, os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	bytesWritten, err := kFile.Write(ciphertext)
-	if err != nil {
+	if err != nil || bytesWritten == 0 {
 		panic(err)
 	}
 }
@@ -166,5 +179,5 @@ func Import(in string) {
 		k.Detail = v[4]
 		ks[v[0]] = k
 	}
-	CreateStore(ks)
+	createStore(ks)
 }
