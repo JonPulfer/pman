@@ -11,7 +11,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"syscall"
 )
 
 const (
@@ -76,8 +75,7 @@ func ListKeystore(secret []byte) {
 }
 
 // Method openKeystore opens the keystore
-func (k *KeyStore) openKeystore(secret []byte) {
-	var fstat syscall.Stat_t
+func (k *KeyStore) Open(secret []byte) {
 	var newKeystore bool
 
 	// Open the file containing the keystore
@@ -90,9 +88,12 @@ func (k *KeyStore) openKeystore(secret []byte) {
 	}
 
 	if !newKeystore {
-		fmt.Printf("Going where I shouldn't go\n")
 		// Read the encrypted data from the file
-		fileData := make([]byte, fstat.Size)
+		fInfo, err := kFile.Stat()
+		if err != nil {
+			panic("Cannot stat keystore file")
+		}
+		fileData := make([]byte, fInfo.Size())
 		_, err = kFile.Read(fileData)
 		if err != nil {
 			panic(err)
@@ -114,6 +115,10 @@ func (k *KeyStore) openKeystore(secret []byte) {
 
 		// Decode the gob to return the KeyStore
 		var buff bytes.Buffer
+		_, err = buff.Write(ciphertext)
+		if err != nil {
+			panic(err)
+		}
 		dec := gob.NewDecoder(&buff)
 		var kStore KeyStore
 		err = dec.Decode(&kStore)
