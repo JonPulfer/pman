@@ -74,7 +74,7 @@ func List(secret []byte) {
 	ks := make(KeyStore)
 	ks.Open(secret)
 	for key, _ := range ks {
-		fmt.Printf("Key: %s\n\tDetail: %s\n", key, ks[key].Detail)
+		fmt.Printf("Key:\t%s\nDetail:\t%s\n\n", key, ks[key].Detail)
 	}
 	ks.Close(secret)
 }
@@ -83,7 +83,7 @@ func List(secret []byte) {
 func Query(qKey string, secret []byte) {
 	ks := make(KeyStore)
 	ks.Open(secret)
-	fmt.Printf("Login:\t\t\t\t\tPassword:\t\tDetail:\n%s\t\t\t%s\t\t%s\n", ks[qKey].LoginName,
+	fmt.Printf("Login:\t\t%s\nPassword:\t%s\nDetail:\t\t%s\n", ks[qKey].LoginName,
 		ks[qKey].Password, ks[qKey].Detail)
 }
 
