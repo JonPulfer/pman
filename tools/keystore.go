@@ -83,8 +83,17 @@ func List(secret []byte) {
 func Query(qKey string, secret []byte) {
 	ks := make(KeyStore)
 	ks.Open(secret)
-	fmt.Printf("Login:\t\t%s\nPassword:\t%s\nDetail:\t\t%s\n", ks[qKey].LoginName,
-		ks[qKey].Password, ks[qKey].Detail)
+	fmt.Printf("Login:\t\t%s\nPassword:\t%s\nOld Password:\t%s\nDetail:\t\t%s\n",
+		ks[qKey].LoginName, ks[qKey].Password, ks[qKey].OldPassword, ks[qKey].Detail)
+}
+
+// Function Delete removes the key from the keystore
+func Delete(dKey string, secret []byte) {
+	ks := make(KeyStore)
+	ks.Open(secret)
+	delete(ks, dKey)
+	fmt.Printf("Key %s has been deleted", delKey)
+	ks.Close(secret)
 }
 
 // Method openKeystore opens the keystore
