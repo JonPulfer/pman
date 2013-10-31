@@ -92,7 +92,7 @@ func Delete(dKey string, secret []byte) {
 	ks := make(KeyStore)
 	ks.Open(secret)
 	delete(ks, dKey)
-	fmt.Printf("Key %s has been deleted", delKey)
+	fmt.Printf("Key %s has been deleted\n", dKey)
 	ks.Close(secret)
 }
 
