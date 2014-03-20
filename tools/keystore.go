@@ -96,6 +96,13 @@ func Delete(dKey string, secret []byte) {
 	ks.Close(secret)
 }
 
+// ChangeSecret changes the secret the store is encrypted using
+func ChangeSecret(oldsecret []byte, newsecret []byte) {
+	ks := make(KeyStore)
+	ks.Open(oldsecret)
+	ks.Close(newsecret)
+}
+
 // Method openKeystore opens the keystore
 func (k *KeyStore) Open(secret []byte) {
 	var newKeystore bool

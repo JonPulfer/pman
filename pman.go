@@ -11,6 +11,7 @@ import (
 )
 
 var listKs *bool
+var chgPwd *bool
 var editKey string
 var addKey string
 var delKey string
@@ -19,6 +20,7 @@ var qKey string
 
 func init() {
 	listKs = flag.Bool("l", false, "List the contents of the keystore")
+	chgPwd = flag.Bool("p", false, "Change the password for the keystore")
 	flag.StringVar(&editKey, "e", "", "Edit <KeyID> entry")
 	flag.StringVar(&addKey, "a", "", "Add a new key to the keystore")
 	flag.StringVar(&delKey, "d", "", "Delete <KeyID> from the keystore")
@@ -40,6 +42,15 @@ func main() {
 
 	if *listKs {
 		tools.List(key)
+	}
+
+	if *chgPwd {
+		newSecret := tools.HideInput("New Password : ")
+		newkey := []byte(newSecret)
+		for i := len(newkey); i < 32; i++ {
+			newkey = append(newkey, []byte("a")[0])
+		}
+		tools.ChangeSecret(key, newkey)
 	}
 
 	if len(addKey) > 0 {
